@@ -11,10 +11,6 @@ before(async () => {
   await connectDB()
 })
 
-console.log('🧪 TEST FILE STARTED')
-console.log('NODE_ENV IN TEST:', process.env.NODE_ENV)
-
-
 
 describe('Notes API', () => {
 
@@ -114,6 +110,46 @@ describe('Notes API', () => {
         assert.strictEqual(response2.body.length, initialBlogs.length-1, `Expected ${initialBlogs.length-1} blogs but got ${response2.body.length}`)
     })
 
+    test('supertest: blogs are returned as json', async () => {
+      await api
+        .get('/api/blogs')
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+    
+        console.log('test is running')
+    })
+    
+    test('supertest: blogs are returned as json - test 2', async () => {
+      await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+    })   
+    
+    test('notes are returned as json', async () => {
+  const response = await api
+    .get('/api/blogs')
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+    console.info(response.body)
+})})
+
+describe('Tests after correcting and completing part 4 C & D', () => {
+    test("Updating blog likes", async () => {
+        const blogsAtStart = await api.get('/api/blogs')
+        const blogToUpdate = blogsAtStart.body[0]
+        const updatedblog = { ...blogToUpdate, likes: blogToUpdate.likes + 1 }
+
+        const response = await api
+            .put(`/api/blogs/${blogToUpdate.id}`)
+            .send(updatedblog)
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+
+        assert.strictEqual(response.body.likes, blogToUpdate.likes + 1, `Expected likes to be ${blogToUpdate.likes + 1} but got ${response.body.likes}`)
+    })
 }
 )
 
