@@ -68,6 +68,26 @@ describe('Initial operations test for Users API', async () => {
         }
 })
 
+    test('POST /api/users with short username returns 400', async () => {
+        try {
+                const newUser = {
+                    username: "us",
+                    name: "Test User",
+                    password: "testpassword"
+                }
+
+                const response = await api
+                .post('/api/users')
+                .send(newUser)
+                .expect(400)
+                .expect('Content-Type', /application\/json/)
+                assert.strictEqual(response.body.error, 'username must be at least 3 characters long')
+            }
+            catch (error) {
+                next(error)
+            }
+        })
+
 
 after(async () => {
   await disconnectDB()
