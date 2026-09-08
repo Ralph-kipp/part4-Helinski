@@ -2,7 +2,7 @@ const supertest = require('supertest')
 const { test,before, after } = require('node:test')
 const mongoose = require('mongoose')
 const app = require('../app')
-const connectDB = require('../controllers/mongo')
+const {connectDB, disconnectDB} = require('../controllers/mongo')
 
 //wrapper for supertest on app.js
 const api = supertest(app)

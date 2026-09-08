@@ -1,12 +1,7 @@
 const express = require('express')
-const config = require('./utils/config')
 const logger = require('./utils/logger')
 const middleware = require('./utils/middleware')
 const blogsRouter = require('./controllers/blogs')
-const connections = require('./controllers/mongo')
-
-logger.info('Connecting to MongoDB...')
-
 
 const app = express()
 
