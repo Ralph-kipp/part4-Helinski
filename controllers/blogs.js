@@ -27,19 +27,24 @@ blogsRouter.post('/', async (request, response, next) => {
   }
 })
 
-blogsRouter.put("/:id", async (request, response, next) => {
-  const likes = request.body.likes;
+blogsRouter.put('/:id', async (request, response, next) => {
+  const { likes } = request.body
 
   try {
     const updatedBlog = await Blog.findByIdAndUpdate(
       request.params.id,
       { likes },
-      { new: true, runValidators: true}
-    );
+      { returnDocument: 'after', runValidators: true }
+    )
+
+    if (!updatedBlog) {
+      return response.status(404).json({ error: 'blog not found' })
+    }
+
     response.json(updatedBlog)
   } catch (error) {
     next(error)
-  }  
+  }
 })
 
 //DELETE /api/blogs/:id → delete a blog by ID
