@@ -9,6 +9,8 @@ const api = supertest(app)
 
 before(async () => {
   await connectDB()
+
+
 })
 
 
@@ -151,7 +153,32 @@ describe('Tests after correcting and completing part 4 C & D', () => {
         assert.strictEqual(response.body.likes, blogToUpdate.likes + 1, `Expected likes to be ${blogToUpdate.likes + 1} but got ${response.body.likes}`)
     })
 }
+
+
 )
+
+describe("More Tests", () => {
+    beforeEach(async () => {
+        await Blog.deleteMany({})
+        await Blog.insertMany(initialBlogs)
+    })
+
+        test("Users must have a hashed password", async () => {
+            const newUser = {
+                username: "testuser",
+                name: "Test User",
+                password: "password123"
+            }
+
+            const response = await api
+                .post('/api/users')
+                .send(newUser)
+                .expect(201)
+                .expect('Content-Type', /application\/json/)
+
+            assert.ok(response.body.passwordHash, "Expected user to have a passwordHash")
+        })
+    })
 
 after(async () => {
   await disconnectDB()

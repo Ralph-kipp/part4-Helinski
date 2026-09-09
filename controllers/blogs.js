@@ -5,6 +5,7 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const { userExtractor } = require('../utils/middleware')
 
 // GET /api/blogs → return all blogs
 
@@ -21,14 +22,16 @@ blogsRouter.get('/', async (request, response, next) => {
 
 // POST /api/blogs → create a new blog
 
-blogsRouter.post('/', async (request, response, next) => {
+blogsRouter.post('/', userExtractor, async (request, response, next) => {
   try {
-    const user = await User.findOne({})
+    const user = request.user
 
+    // Is there actually a logged-in user?
     if (!user) {
-      return response.status(400).json({ error: 'User not found' })
+      return response.status(401).json({ error: 'token missing or invalid' })
     }
 
+    // Create blog belonging to this user
     const blog = new Blog({
       title: request.body.title,
       author: request.body.author,
@@ -37,13 +40,9 @@ blogsRouter.post('/', async (request, response, next) => {
       user: user._id
     })
 
-    // Save the blog
     const savedBlog = await blog.save()
 
-    // Add the blog ID to the user's blogs array
     user.blogs = user.blogs.concat(savedBlog._id)
-
-    // Save the updated user
     await user.save()
 
     response.status(201).json(savedBlog)
@@ -51,7 +50,6 @@ blogsRouter.post('/', async (request, response, next) => {
     next(error)
   }
 })
-
 // PUT /api/blogs/:id → update likes
 
 blogsRouter.put('/:id', async (request, response, next) => {
@@ -76,8 +74,25 @@ blogsRouter.put('/:id', async (request, response, next) => {
 
 // DELETE /api/blogs/:id → delete a blog by ID
 
-blogsRouter.delete('/:id', async (request, response, next) => {
+blogsRouter.delete('/:id', userExtractor, async (request, response, next) => {
   try {
+    const user = request.user
+    // Is there actually a logged-in user?
+    if (!user) {
+      return response.status(401).json({ error: 'token missing or invalid' })
+    }
+    const blog = await Blog.findById(request.params.id)
+
+    if (!blog) {
+      return response.status(404).json({ error: 'blog not found' })
+    }
+    if (blog.user.toString() !== request.user._id.toString()) {
+      return response.status(403).json({ error: 'user not authorized to delete this blog' })
+    }
+
+    user.blogs = user.blogs.filter(b => b.toString() !== blog._id.toString())
+    await user.save()
+
     await Blog.findByIdAndDelete(request.params.id)
     response.status(204).end()
   } catch (error) {
